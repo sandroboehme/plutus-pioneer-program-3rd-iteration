@@ -57,3 +57,6 @@
    8. [Burn](https://youtu.be/xgnmMl-eIIM?t=2623)
       1. Prelude name clashes
 2. [High Level Typed Validation Scripts](https://www.youtube.com/watch?v=HoB_PqeZPNc&list=PLNEK_Ejlx3x0mhPmOjPSHZPtTFpfJo3Nd&index=3)
+3. [Homework](https://www.youtube.com/watch?v=_r-EpXzQGKo&list=PLNEK_Ejlx3x0mhPmOjPSHZPtTFpfJo3Nd&index=6)
+   1. Homework 1
+   2. [Homework 2](https://youtu.be/_r-EpXzQGKo?t=65)

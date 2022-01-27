@@ -21,7 +21,15 @@ main = putStrLn "Hello World!"
 continueWithStrOutput = putStrLn "Hello" >> putStrLn "World"
 
 
-readEitherSandro Read a :: String -> Either String a
-readEitherSandro x = case readMaybe x of
-  Nothing -> Left $ x ++ " cannot be read."
-  Just x -> Right x
+--readEitherSandro Read a :: String -> Either String a
+--readEitherSandro x = case readMaybe x of
+--  Nothing -> Left $ x ++ " cannot be read."
+--  Just x -> Right x
+
+mkValidator :: () -> (Bool, Bool) -> () -> Bool
+mkValidator _ (a, b) _ = a == b
+
+data MyRedeemer = MyRedeemer
+    { flag1 :: Bool
+    , flag2 :: Bool
+    } deriving (Show)
