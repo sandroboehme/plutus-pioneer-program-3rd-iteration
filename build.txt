@@ -1,0 +1,24 @@
+plutus-apps: git checkout <sha>
+nix-shell 15min, danach ca 1min
+
+Danach spawn zusätzliche Prozesse
+
+1. nix-shell
+   cd plutus-playground-client
+   plutus-playground-server -i 120s
+
+2. nix-shell
+   cd plutus-playground-client
+   npm start
+
+3. ppp: nix-shell
+cd ../plutus-pioneer-program-3rd/code/week03/
+cabal update 12+min
+cabal build
+cabal repl
+
+4. docs:
+nix-shell
+build-and-serve-docs
+http://localhost:8002/haddock
+type `s` for "search"

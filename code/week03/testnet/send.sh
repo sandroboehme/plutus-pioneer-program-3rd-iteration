@@ -1,3 +1,5 @@
+export CARDANO_NODE_SOCKET_PATH=node.socket
+
 cardano-cli transaction build \
     --alonzo-era \
     --testnet-magic 1097911063 \
