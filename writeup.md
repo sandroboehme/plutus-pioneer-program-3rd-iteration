@@ -169,3 +169,120 @@ This is a writeup about the Plutus Pioneer Program lectures. I use it to be able
 10. [Homework](https://www.youtube.com/watch?v=GGUT2O_0urQ&list=PLNEK_Ejlx3x2zxcfoVGARFExzOHwXFCCL&index=7)
     1. First part
     2. [Second part](https://youtu.be/GGUT2O_0urQ?t=367)
+11. [Monads](https://www.youtube.com/watch?v=f2w-MB3X4a0&list=PLNEK_Ejlx3x230-g-U02issX5BiWAgmSi&index=2)
+    1. Executing a Monad like `foo :: IO Int` just builds the same recipe every time and still doesn't have any sideeffects.
+       1. `IO` is a type constructor that takes one argument like `Maybe` or Generics like `Optional<Integer>` in Java.
+    2. Can only  be execute in the main entry point similar to the `main` method in Java and in the repl.
+    3. [Combining IO actions](https://youtu.be/f2w-MB3X4a0?t=745)
+       1. [`toUpper :: Char -> Char` | `map :: (a -> b) -> [a] -> [b]`](https://youtu.be/f2w-MB3X4a0?t=877)
+       2. `map toUpper "Haskell"` passes the two parameters to `map`, executes the `toUpper` function for every char element of the `"Haskell"` array and returns the result.
+       3. [Functor](https://youtu.be/f2w-MB3X4a0?t=811)
+          1. [`fmap :: Functor f => (a -> b) -> f a -> f b`](https://youtu.be/f2w-MB3X4a0?t=942)
+          2. `:t fmap (map toUpper) getLine`: `fmap (map toUpper) getLine :: IO [Char]`
+          3. `fmap (map toUpper) getLine` providing "Haskell" returns "HASKELL"
+          4. The difference to `map` is, that the second parameter can be a function that provides a parameter.
+          5. `fmap` can map existing IO actions and turn them into other IO actions. 
+       4. [Sequence operator >>](https://youtu.be/f2w-MB3X4a0?t=1006)
+          1. `:t putStrLn`: `putStrLn :: String -> IO ()`
+             1. Expects a String and outputs it.
+             2. Is an IO action with a unit result.
+          2. `>>` chains two IO actions together ignoring the result of the first
+          3. Executes both actions in sequence
+       5. [Bind operator >>=](https://youtu.be/f2w-MB3X4a0?t=1076)
+          1. See also: http://learnyouahaskell.com/a-fistful-of-monads 
+          2. `:t (>>=)`: `(>>=) :: Monad m => m a -> (a -> m b) -> m b`
+          3. `m a` IO action that returns an `a`
+          4. `(a -> m b)` a function that - given an `a` - returns an IO action that returns `b`
+          5. `-> m b` will be combined to an IO action that produces a `b`
+          6. [Example `getLine >>= putStrLn`](https://youtu.be/f2w-MB3X4a0?t=1115)
+             1. without infix: `(>>=) getLine putStrLn` 
+             2. `:t getLine`: `getLine :: IO String`
+             3. `:t putStrLn`: `putStrLn :: String -> IO ()`
+             4. Returns an IO action that produces a String
+             5. `IO String (String -> IO()) -> IO ()`
+          7. [`return`](https://youtu.be/f2w-MB3X4a0?t=1197)
+             1. `return :: Monad m => a -> m a`
+             2. Will not perform any sideeffects and immediately return the given `a`
+             3. Wraps a pure value into a typed function.
+          8. [Example](https://youtu.be/f2w-MB3X4a0?t=1259)
+             ```
+             main :: IO ()
+             main = bar
+             
+             bar :: IO ()
+             bar = getLine >>= \s ->
+                   getLine >>= \t ->
+                   putStrLn (s ++ '-' ++ t)
+             ```
+          9. asdf
+    4. [`Maybe`](https://youtu.be/f2w-MB3X4a0?t=1424)
+    5. [`Either`](https://youtu.be/f2w-MB3X4a0?t=2085)
+    6. [`Writer`](https://youtu.be/f2w-MB3X4a0?t=2567)
+    7. [`Tell`](https://youtu.be/f2w-MB3X4a0?t=2805)
+    8. [Monad summary](https://youtu.be/f2w-MB3X4a0?t=3247)
+       1. The possibility to bind two computations together
+       2. The possibility to construct a computation from a pure value without making use of any of the potential side-effects.
+    9. [`Applicative`](https://youtu.be/f2w-MB3X4a0?t=3630)
+       1. `pure`
+       2. `<*>` called "ap" operator
+       3. Superclass is `Functor`
+          1. Has `fmap` function
+    10. [Use bind for all kinds of Monads](https://youtu.be/f2w-MB3X4a0?t=3940)
+        1. `threeInts` for `Maybe`, `Either`, (`Writer`),...
+        ```haskell
+        threeInts :: Monad m => m Int -> m Int -> m Int -> m Int
+        threeInts mx my mz =
+        mx >>= \k ->
+        my >>= \l ->
+        mz >>= \m ->
+        let s = k + l + m in return s
+        
+        foo'' :: String -> String -> String -> Maybe Int
+        foo'' x y z = threeInts (readMaybe x) (readMaybe y) (readMaybe z)
+        
+        foo'' :: String -> String -> String -> Either String Int
+        foo'' x y z = threeInts (readEither x) (readEither y) (readEither z)
+        ```
+    11. [Monad summary based on `threeInts`](https://youtu.be/f2w-MB3X4a0?t=4384)
+        1. Computation with a super power (side-effect, fail with an error msg, log messages,...)
+        2. Kind of an "Overloaded semicolon" ;-)
+    12. [`do` notation](https://youtu.be/f2w-MB3X4a0?t=4615)
+        ```haskell
+        threeInts' :: Monad m => m Int -> m Int -> m Int -> m Int
+        threeInts' mx my mz = do
+        k <- mx
+        l <- my
+        m <- mz
+        let s = k + l + m
+        return s
+        ```
+12. [`Contract` Monad](https://www.youtube.com/watch?v=yKX5Ce8Y0VQ&list=PLNEK_Ejlx3x230-g-U02issX5BiWAgmSi&index=4)
+    1. `Contract w s e a`
+       1. `w`
+          1. Allows the contract to write log messages of type `w`
+          2. Is an event to the outside world.
+       2. `s` Specifies the endpoints that are available to the contract
+       3. `e` Type of error messages. E.g. `Text`
+       4. `a` return type
+    2. Example contract
+       1. [`String`/`Text` handling](https://youtu.be/yKX5Ce8Y0VQ?t=174)
+          1. `OverloadedStrings`, `TypeApplications` to disambiguate literal `String`s
+          2. `@String "hello from the contract"`
+       2. `()` = Unit = a value
+       3. `Void` has no value
+       4. [`Contract.handleError()`](https://youtu.be/yKX5Ce8Y0VQ?t=616)
+          1. `unpack` converts `Data.Text` to `String`
+    3. [The schema parameter](https://youtu.be/yKX5Ce8Y0VQ?t=979)
+       1. [Type synonym](https://youtu.be/yKX5Ce8Y0VQ?t=1026)
+          1. `type MySchema = Endpoint "foo" Int .\/ Endpoint "bar" String`
+             1. That's an advanced Haskell feature where even `"foo"` is a type.
+                1. Made possible by the `DataKinds` extension
+             2. It's an endpoint "foo" of type `Int`
+    4. `endpoint`
+    5. [`callEndpoint`](https://youtu.be/yKX5Ce8Y0VQ?t=1309)
+    6. [`w` observable state parameter](https://youtu.be/yKX5Ce8Y0VQ?t=1601)
+       1. `Monoid`, `mempty`, `mappend`
+       2. `tell` `mappend`s to the existing state
+       3. One can communicate to the contract by invoking the endpoint and it can communicate back to the emulator trace or the browser / user interface of the dapp by calling `tell`
+13. [Homework](https://www.youtube.com/watch?v=sxRLzR0jdiY&list=PLNEK_Ejlx3x230-g-U02issX5BiWAgmSi&index=5)
+    1. 

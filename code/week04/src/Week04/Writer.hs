@@ -3,6 +3,7 @@ module Week04.Writer where
 import Control.Monad
 import Week04.Monad
 
+-- Object with type parameter `a` a list of Strings
 data Writer a = Writer a [String]
     deriving Show
 
