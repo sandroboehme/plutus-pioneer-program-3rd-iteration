@@ -38,10 +38,15 @@ mkPolicy oref tn () ctx = traceIfFalse "UTxO not consumed"   hasUTxO           &
     info :: TxInfo
     info = scriptContextTxInfo ctx
 
+    -- check if the TxOutRef compiled into the script is the same one
+    -- as one of the inputs of the transaction.
+    -- see http://localhost:8002/haddock/plutus-ledger-api/html/Plutus-V1-Ledger-Api.html#t:TxInInfo
     hasUTxO :: Bool
     hasUTxO = any (\i -> txInInfoOutRef i == oref) $ txInfoInputs info
+    -- `any even [2 :: Int, 3, 5 ]` ==> true as at least 2 is even
 
     checkMintedAmount :: Bool
+    -- see http://localhost:8002/haddock/plutus-ledger-api/html/Plutus-V1-Ledger-Api.html#t:TxInfo
     checkMintedAmount = case flattenValue (txInfoMint info) of
         [(_, tn', amt)] -> tn' == tn && amt == 1
         _               -> False
@@ -59,7 +64,7 @@ curSymbol oref tn = scriptCurrencySymbol $ policy oref tn
 
 data NFTParams = NFTParams
     { npToken   :: !TokenName
-    , npAddress :: !Address
+    , npAddress :: !Address -- used to find the UTxO of the user
     } deriving (Generic, FromJSON, ToJSON, Show)
 
 type NFTSchema = Endpoint "mint" NFTParams
@@ -67,6 +72,7 @@ type NFTSchema = Endpoint "mint" NFTParams
 mint :: NFTParams -> Contract w NFTSchema Text ()
 mint np = do
     utxos <- utxosAt $ npAddress np
+    -- `Map.keys utxos` returns the `txOutRefs`
     case Map.keys utxos of
         []       -> Contract.logError @String "no utxo found"
         oref : _ -> do

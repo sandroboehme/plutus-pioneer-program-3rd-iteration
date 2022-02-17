@@ -2,6 +2,8 @@
 
 This repo is a fork of https://github.com/input-output-hk/plutus-pioneer-program.
 
+It contains my solutions and a [writeup](./writeup.md) of the lectures.
+
 ## Lectures
 
 ### [Lecture #1](https://www.youtube.com/playlist?list=PLNEK_Ejlx3x2nLM4fAck2JS6KhFQlXq2N)

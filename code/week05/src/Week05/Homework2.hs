@@ -27,23 +27,56 @@ import           Ledger.Value           as Value
 import           Prelude                (IO, Semigroup (..), Show (..), String, undefined)
 import           Text.Printf            (printf)
 import           Wallet.Emulator.Wallet
+import           Plutus.V1.Ledger.Ada
 
 {-# INLINABLE mkPolicy #-}
 -- Minting policy for an NFT, where the minting transaction must consume the given UTxO as input
 -- and where the TokenName will be the empty ByteString.
 mkPolicy :: TxOutRef -> () -> ScriptContext -> Bool
-mkPolicy oref () ctx = True -- FIX ME!
+mkPolicy oref () ctx = traceIfFalse "UTxO not consumed"   hasUTxO           &&
+                          traceIfFalse "wrong amount minted" checkMintedAmount
+  where
+    info :: TxInfo
+    info = scriptContextTxInfo ctx
+
+    -- check if the TxOutRef compiled into the script is the same one
+    -- as one of the inputs of the transaction.
+    -- see http://localhost:8002/haddock/plutus-ledger-api/html/Plutus-V1-Ledger-Api.html#t:TxInInfo
+    hasUTxO :: Bool
+    hasUTxO = any (\i -> txInInfoOutRef i == oref) $ txInfoInputs info
+    -- `any even [2 :: Int, 3, 5 ]` ==> true as at least 2 is even
+
+    checkMintedAmount :: Bool
+    -- see http://localhost:8002/haddock/plutus-ledger-api/html/Plutus-V1-Ledger-Api.html#t:TxInfo
+    checkMintedAmount = case flattenValue (txInfoMint info) of
+        [(_, tn', amt)] -> tn' == adaToken && amt == 1
+        _               -> False
 
 policy :: TxOutRef -> Scripts.MintingPolicy
-policy oref = undefined -- IMPLEMENT ME!
+policy oref = mkMintingPolicyScript $
+    $$(PlutusTx.compile [|| Scripts.wrapMintingPolicy . mkPolicy ||])
+    `PlutusTx.applyCode`
+    PlutusTx.liftCode oref
 
 curSymbol :: TxOutRef -> CurrencySymbol
-curSymbol = undefined -- IMPLEMENT ME!
+curSymbol = scriptCurrencySymbol . policy
+
 
 type NFTSchema = Endpoint "mint" Address
 
 mint :: Address -> Contract w NFTSchema Text ()
-mint _ = undefined -- IMPLEMENT ME!
+mint npAddress = do
+    utxos <- utxosAt $ npAddress
+    -- `Map.keys utxos` returns the `txOutRefs`
+    case Map.keys utxos of
+        []       -> Contract.logError @String "no utxo found"
+        oref : _ -> do
+            let val     = Value.singleton (curSymbol oref) adaToken 1
+                lookups = Constraints.mintingPolicy (policy oref) <> Constraints.unspentOutputs utxos
+                tx      = Constraints.mustMintValue val <> Constraints.mustSpendPubKeyOutput oref
+            ledgerTx <- submitTxConstraintsWith @Void lookups tx
+            void $ awaitTxConfirmed $ getCardanoTxId ledgerTx
+            Contract.logInfo @String $ printf "forged %s" (show val)
 
 endpoints :: Contract () NFTSchema Text ()
 endpoints = mint' >> endpoints

@@ -55,6 +55,7 @@ payTrace l1 l2 = do
                 { ppRecipient = mockWalletPaymentPubKeyHash $ knownWallet 2
                 , ppLovelace    = l2
                 }
+     -- TODO: Check if the below line (and the whole solution) is correct.
      h2 <- activateContractWallet (knownWallet 1) errorHandledPayContract
      callEndpoint @"pay" h2 pp2
      void $ Emulator.waitNSlots 1

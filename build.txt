@@ -10,9 +10,9 @@ Danach spawn zusätzliche Prozesse
 2. nix-shell
    cd plutus-playground-client
    npm start
-
+   ==> https://0.0.0.0:8009/
 3. ppp: nix-shell
-cd ../plutus-pioneer-program-3rd/code/week03/
+cd ../plutus-pioneer-program-3rd/code/week05/
 cabal update 12+min
 cabal build
 cabal repl
@@ -20,5 +20,5 @@ cabal repl
 4. docs:
 nix-shell
 build-and-serve-docs
-http://localhost:8002/haddock
+==>http://localhost:8002/haddock
 type `s` for "search"
