@@ -286,132 +286,132 @@ This is a writeup about the Plutus Pioneer Program lectures. I use it to be able
        2. `tell` `mappend`s to the existing state
        3. One can communicate to the contract by invoking the endpoint and it can communicate back to the emulator trace or the browser / user interface of the dapp by calling `tell`
 13. [Homework](https://www.youtube.com/watch?v=sxRLzR0jdiY&list=PLNEK_Ejlx3x230-g-U02issX5BiWAgmSi&index=5)
-    1. Native Tokens
-       1. [What means "value" in Cardano](https://www.youtube.com/watch?v=mGPqi9m0EPw&list=PLNEK_Ejlx3x0G8V8CDBnRDZ86POVsrfzw&index=2)
-          1. Each UTxO has an address and a `Value`.
-             1. (... and `Datum` and `Redeemer`)
-       2. ["Values"](https://www.youtube.com/watch?v=4iNTgjovMRg&list=PLNEK_Ejlx3x0G8V8CDBnRDZ86POVsrfzw&index=2)
-          1. [`Value` constructor](https://playground.plutus.iohkdev.io/doc/haddock/plutus-ledger-api/html/Plutus-V1-Ledger-Value.html#t:Value)
-             1. `getValue :: Map CurrencySymbol (Map TokenName Integer)`
-                1. A map of `CurrencySymbol` to a map of `TokenName` to `Integer`
-                2. [`CurrencySymbol` constructor](https://playground.plutus.iohkdev.io/doc/haddock/plutus-ledger-api/html/Plutus-V1-Ledger-Value.html#t:CurrencySymbol)
-                   1. `unCurrencySymbol :: BuiltinByteString`
-                      1. [NewType](https://wiki.haskell.org/Newtype) wrapper around a `BuiltinByteString`
-                   2. [It is actually the hash of a script - the minting policy](https://youtu.be/4iNTgjovMRg?t=642)
-                      1. It is needed for transactions who want to mint / create or burn native tokens
-                3. [`TokenName` constructor](https://playground.plutus.iohkdev.io/doc/haddock/plutus-ledger-api/html/Plutus-V1-Ledger-Value.html#g:2)
-                   1. `unTokenName :: BuiltinByteString`
-                   2. [NewType](https://wiki.haskell.org/Newtype) wrapper around a `BuiltinByteString`
-             2. Means: How many units of each asset class are contained in the UTxO
-       3. [`AssetClass` is the combination of `CurrencySymbol` and `TokenName`](https://playground.plutus.iohkdev.io/doc/haddock/plutus-ledger-api/html/Plutus-V1-Ledger-Value.html#g:3)
-          1. ADA is an asset class and custom native tokes are other asset classes
-          2. `unAssetClass :: (CurrencySymbol, TokenName)`
-             1. Equivalent to `Map CurrencySymbol (Map TokenName Integer)`
-       4. Playing in the repl
-          1. ```haskell
-             import Plutus.V1.Ledger.Value
-             import Plutus.V1.Ledger.Ada
-             :set -XOverloadedStrings -- to enter ByteStrings as literal strings
-             ```
-             `CurrencySymbol` and `TokenName` implement the `isString` class. This means we can enter both of them as literal Strings as well. 
-          2. `adaSymbol` returns an empty ByteString as the `CurrencySymbol` of ADA
-          3. `adaToken` returns an emtpy ByteString as the `TokenName` of ADA
-          4. `lovelaceValueOf` given an Integer returns a `Value` of ADA
-             1. `lovelaceValueOf 1234`  
-             2. `Value (Map [(,Map [("",1324)])])`
-                1. a map of an empty ByteString to a map of an empty ByteString to 1234
-             3. [Combine / add up with a `mappend` of Monoid (https://youtu.be/4iNTgjovMRg?t=301)
-             4. `<>` the `mappend` operator from the superclass of `Monoid`
-                1. `lovelaceValueOf 10 <> lovelaceValueOf 20`
-                2. `Value (Map [(,Map [("",30)])])`
-          5. [Create values containing native tokens](https://youtu.be/4iNTgjovMRg?t=366)
-             1. `:t singleton`: `singleton :: CurrencySymbol -> TokenName -> Integer -> Value`
-             2. Specifies the amount of an asset class that is there.
-             3. `singleton "a8ff" "ABG" 7`: `Value (Map [(a8ff,Map [("ABG",7)])])`
-             4. `singleton "a8ff" "ABG" 7 <> lovelaceValueOf 42 <> singleton "a8ff" "XYZ" 100`
-                1. ```haskell
-                   Value (Map [
-                      (,Map [("",42)])
-                      (a8ff, Map [
-                            ("ABG",7),
-                            ("XYZ",100)
-                      ])
+14. Native Tokens
+    1. [What means "value" in Cardano](https://www.youtube.com/watch?v=mGPqi9m0EPw&list=PLNEK_Ejlx3x0G8V8CDBnRDZ86POVsrfzw&index=2)
+       1. Each UTxO has an address and a `Value`.
+          1. (... and `Datum` and `Redeemer`)
+    2. ["Values"](https://www.youtube.com/watch?v=4iNTgjovMRg&list=PLNEK_Ejlx3x0G8V8CDBnRDZ86POVsrfzw&index=2)
+       1. [`Value` constructor](https://playground.plutus.iohkdev.io/doc/haddock/plutus-ledger-api/html/Plutus-V1-Ledger-Value.html#t:Value)
+          1. `getValue :: Map CurrencySymbol (Map TokenName Integer)`
+             1. A map of `CurrencySymbol` to a map of `TokenName` to `Integer`
+             2. [`CurrencySymbol` constructor](https://playground.plutus.iohkdev.io/doc/haddock/plutus-ledger-api/html/Plutus-V1-Ledger-Value.html#t:CurrencySymbol)
+                1. `unCurrencySymbol :: BuiltinByteString`
+                   1. [NewType](https://wiki.haskell.org/Newtype) wrapper around a `BuiltinByteString`
+                2. [It is actually the hash of a script - the minting policy](https://youtu.be/4iNTgjovMRg?t=642)
+                   1. It is needed for transactions who want to mint / create or burn native tokens
+             3. [`TokenName` constructor](https://playground.plutus.iohkdev.io/doc/haddock/plutus-ledger-api/html/Plutus-V1-Ledger-Value.html#g:2)
+                1. `unTokenName :: BuiltinByteString`
+                2. [NewType](https://wiki.haskell.org/Newtype) wrapper around a `BuiltinByteString`
+          2. Means: How many units of each asset class are contained in the UTxO
+    3. [`AssetClass` is the combination of `CurrencySymbol` and `TokenName`](https://playground.plutus.iohkdev.io/doc/haddock/plutus-ledger-api/html/Plutus-V1-Ledger-Value.html#g:3)
+       1. ADA is an asset class and custom native tokes are other asset classes
+       2. `unAssetClass :: (CurrencySymbol, TokenName)`
+          1. Equivalent to `Map CurrencySymbol (Map TokenName Integer)`
+    4. Playing in the repl
+       1. ```haskell
+          import Plutus.V1.Ledger.Value
+          import Plutus.V1.Ledger.Ada
+          :set -XOverloadedStrings -- to enter ByteStrings as literal strings
+          ```
+          `CurrencySymbol` and `TokenName` implement the `isString` class. This means we can enter both of them as literal Strings as well. 
+       2. `adaSymbol` returns an empty ByteString as the `CurrencySymbol` of ADA
+       3. `adaToken` returns an emtpy ByteString as the `TokenName` of ADA
+       4. `lovelaceValueOf` given an Integer returns a `Value` of ADA
+          1. `lovelaceValueOf 1234`  
+          2. `Value (Map [(,Map [("",1324)])])`
+             1. a map of an empty ByteString to a map of an empty ByteString to 1234
+          3. [Combine / add up with a `mappend` of Monoid (https://youtu.be/4iNTgjovMRg?t=301)
+          4. `<>` the `mappend` operator from the superclass of `Monoid`
+             1. `lovelaceValueOf 10 <> lovelaceValueOf 20`
+             2. `Value (Map [(,Map [("",30)])])`
+       5. [Create values containing native tokens](https://youtu.be/4iNTgjovMRg?t=366)
+          1. `:t singleton`: `singleton :: CurrencySymbol -> TokenName -> Integer -> Value`
+          2. Specifies the amount of an asset class that is there.
+          3. `singleton "a8ff" "ABG" 7`: `Value (Map [(a8ff,Map [("ABG",7)])])`
+          4. `singleton "a8ff" "ABG" 7 <> lovelaceValueOf 42 <> singleton "a8ff" "XYZ" 100`
+             1. ```haskell
+                Value (Map [
+                   (,Map [("",42)])
+                   (a8ff, Map [
+                         ("ABG",7),
+                         ("XYZ",100)
                    ])
-                   ```
-             5. [`valueOf` given a `Value` extract the amount of a given asset class](https://youtu.be/4iNTgjovMRg?t=551)
-                1. `:t valueOf`: `valueOf :: Value -> CurrencySymbol -> TokenName -> Integer`
-                2. `valueOf v "a8ff" "XYZ"`: 100
-                3. `valueOf v "a8ff" "ABG"`: 7
-                4. `valueOf v "a8ff" ""`: 42
-             6. `:t flattenValue`: `flattenValue :: Value -> [(CurrencySymbol, TokenName, Integer)]`
-                1. Flattens the map into a list of triples
-                2. `flattenValue v`: `[(,"",42),(a8ff,"XYZ",100),(a8ff,"ABG",7)]`
-          6. [Minting Policy](https://www.youtube.com/watch?v=DBUdFsZpW7A&list=PLNEK_Ejlx3x0G8V8CDBnRDZ86POVsrfzw&index=3)
-             1. [`ScriptContext` Haddock](http://localhost:8002/haddock/plutus-ledger-api/html/Plutus-V1-Ledger-Api.html#t:ScriptContext) 
-             2. `ScriptContext` ==> `scriptContextPurpose` had `Spending` until now.
-             3. `ScriptContext` ==> `scriptContextTxInfo` has all the context info about the tx that is being validated
-             4. Minting / monetary policies is/are triggered when `TxInfo`==> `txInfoMint` contains a non-zero `Value`
-             5. For each `CurrencySymbol` the corresponding script is executed
-                1. The minting policy scripts have only two inputs. The `Redeemer` and the `ScriptContext` (no Datum).
-                2. The `Redeemer` is provided by the transaction for all the scripts inputs
-                3. `ScriptContext` ==> `scriptContextPurpose` ==> `Minting` will be the `CurrencySymbol` whose minting/burning currently being checked.
-                4. All the policies need to pass. If one of them fails the whole transaction will fail.
-             6. [Example: Free minting (Free.hs)](https://youtu.be/DBUdFsZpW7A?t=289)
-             7. [Example: Signed minting (Signed.hs)](https://www.youtube.com/watch?v=4SROikF8JwE&list=PLNEK_Ejlx3x0G8V8CDBnRDZ86POVsrfzw&index=5)
-                1. See also [parameterized validators](#parameterized).
-                2. <a id="functioncomposition">Function composition with the dot (`.`) infix operator</a>
-                   1. http://learnyouahaskell.com/higher-order-functions
-                   2. Composing two functions produces a new function
-                   3. Uses currying?
-                   4. Definition:
+                ])
+                ```
+          5. [`valueOf` given a `Value` extract the amount of a given asset class](https://youtu.be/4iNTgjovMRg?t=551)
+             1. `:t valueOf`: `valueOf :: Value -> CurrencySymbol -> TokenName -> Integer`
+             2. `valueOf v "a8ff" "XYZ"`: 100
+             3. `valueOf v "a8ff" "ABG"`: 7
+             4. `valueOf v "a8ff" ""`: 42
+          6. `:t flattenValue`: `flattenValue :: Value -> [(CurrencySymbol, TokenName, Integer)]`
+             1. Flattens the map into a list of triples
+             2. `flattenValue v`: `[(,"",42),(a8ff,"XYZ",100),(a8ff,"ABG",7)]`
+       6. [Minting Policy](https://www.youtube.com/watch?v=DBUdFsZpW7A&list=PLNEK_Ejlx3x0G8V8CDBnRDZ86POVsrfzw&index=3)
+          1. [`ScriptContext` Haddock](http://localhost:8002/haddock/plutus-ledger-api/html/Plutus-V1-Ledger-Api.html#t:ScriptContext) 
+          2. `ScriptContext` ==> `scriptContextPurpose` had `Spending` until now.
+          3. `ScriptContext` ==> `scriptContextTxInfo` has all the context info about the tx that is being validated
+          4. Minting / monetary policies is/are triggered when `TxInfo`==> `txInfoMint` contains a non-zero `Value`
+          5. For each `CurrencySymbol` the corresponding script is executed
+             1. The minting policy scripts have only two inputs. The `Redeemer` and the `ScriptContext` (no Datum).
+             2. The `Redeemer` is provided by the transaction for all the scripts inputs
+             3. `ScriptContext` ==> `scriptContextPurpose` ==> `Minting` will be the `CurrencySymbol` whose minting/burning currently being checked.
+             4. All the policies need to pass. If one of them fails the whole transaction will fail.
+          6. [Example: Free minting (Free.hs)](https://youtu.be/DBUdFsZpW7A?t=289)
+          7. [Example: Signed minting (Signed.hs)](https://www.youtube.com/watch?v=4SROikF8JwE&list=PLNEK_Ejlx3x0G8V8CDBnRDZ86POVsrfzw&index=5)
+             1. See also [parameterized validators](#parameterized).
+             2. <a id="functioncomposition">Function composition with the dot (`.`) infix operator</a>
+                1. http://learnyouahaskell.com/higher-order-functions
+                2. Composing two functions produces a new function
+                3. Uses currying?
+                4. Definition:
+                   1. ```haskell
+                         (.) :: (b -> c) -> (a -> b) -> a -> c
+                         f . g = \x -> f (g x)
+                      ```
+                   2. ```haskell
+                         let x = negate . (* 3)
+                         x 2
+                         ==> -6
+                      ```
+                   3. Returns a function (`x`) that can have parameters (`2` in the example) 
+                   4. `x` first applies the parameter to the second function (`(g x)`) and then runs the first function on the result (`f (g x)`)
+                   5. One of the uses for function composition is making functions on the fly to pass to other functions. Sure, can use lambdas for that, but many times, function composition is clearer and more concise.
+                   6. Equivalent: `(\x -> negate ((* 3) x))`
+                   7. Examples:
                       1. ```haskell
-                            (.) :: (b -> c) -> (a -> b) -> a -> c
-                            f . g = \x -> f (g x)
-                         ```
-                      2. ```haskell
-                            let x = negate . (* 3)
-                            x 2
-                            ==> -6
-                         ```
-                      3. Returns a function (`x`) that can have parameters (`2` in the example) 
-                      4. `x` first applies the parameter to the second function (`(g x)`) and then runs the first function on the result (`f (g x)`)
-                      5. One of the uses for function composition is making functions on the fly to pass to other functions. Sure, can use lambdas for that, but many times, function composition is clearer and more concise.
-                      6. Equivalent: `(\x -> negate ((* 3) x))`
-                      7. Examples:
-                         1. ```haskell
-                                let x = negate . abs
-                                x (-2)
-                                ==> -2
-                                ```
-                         2. `map (negate . abs) [5,-3,-6,7,-3,2,-19,24]`
-                            1. `[-5,-3,-6,-7,-3,-2,-19,-24]`
-                            2. It's equivalent to `map (\x -> negate (abs x))`
-                3. `scriptCurrencySymbol policy` calls `scriptCurrencySymbol` with `policy` as a parameter.
-                4. `scriptCurrencySymbol . policy` returns a function that can have parameters.
-                   1. When the function is called, then first `policy` will be called with the parameters and then `scriptCurrencySymbol` will be called on the result.
-                5. `:t txSignedBy`: `txSignedBy :: TxInfo -> PubKeyHash -> Bool`
-                6. `:t scriptContextTxInfo`: `scriptContextTxInfo :: ScriptContext -> TxInfo`
-                   1. See: http://localhost:8002/haddock/plutus-ledger-api/html/Plutus-V1-Ledger-Api.html#t:ScriptContext
-                7. `mkPolicy pkh () ctx = txSignedBy (scriptContextTxInfo ctx) $ unPaymentPubKeyHash pkh`
-                   1. Checks wether the tx that is minting the native token has been signed by the given PubKeyHash ()
-                8. ==>! The minting policy script is now parameterized with the `PaymentPubKeyHash`.
-                   1. This hash is different for every wallet. ==> Thus it produces a different policy script hash. ==> Thus is results in a different `CurrencySymbol`.
-                   2. In the emulator trace example the token name `ABC` is the same but the generated `CurrencySymbol` is different. Resulting in a different asset class.
-                   3. ==> Even though the token name is the same, the asset class will still depend on the wallet minting it.
-             8. [NFTs (NFT.hs) / max token amount](https://www.youtube.com/watch?v=2lKN0ZL_EQU&list=PLNEK_Ejlx3x0G8V8CDBnRDZ86POVsrfzw&index=5)
-                1. Solution 1 (Mary era): create a monetary policy script with a `PaymentPubKeyHash` that doesn't allow to mint more of it after a certain deadline.
-                   1. This way: Before the deadline no one else can mint more as it's only allowed to be done with the `PaymentPubKeyHash` of the wallet.
-                   2. After the deadline it's not allowed to add more as the policy script will deny it.
-                2. Solution 2 (Plutus): 
-                   1. The UTxO is unique as it's the nth index output of a transaction which itself is unique and as an own id.
-                      1. A transaction is only unique because of fees.
-                      2. A transaction that doesn't have inputs and only outputs without value might not be unique.
-                      3. But as one always need to pay fees for transactions that is not possible. One always need to have an input to be consumed to cover the transaction fees.
-                      4. Such an input always needs to come from an output of another transaction.
-                      5. The inputs are used to create the transaction hash. As they are unique the transaction hash is unique.
-                      6. This is recursive.
-                   2. Check in the minting policy that the transaction consumes a specific UTxO. This way the minting policy can only be called once.
-                   3. Additionally check that the `txInfoMint` has a value with an amount of only 1.
-                   4. [Parameterized policy function with two parameters](https://youtu.be/2lKN0ZL_EQU?t=830)
-                   5. [Offchain contract that mints the NFT](https://youtu.be/2lKN0ZL_EQU?t=892)
-                   6. 
+                             let x = negate . abs
+                             x (-2)
+                             ==> -2
+                             ```
+                      2. `map (negate . abs) [5,-3,-6,7,-3,2,-19,24]`
+                         1. `[-5,-3,-6,-7,-3,-2,-19,-24]`
+                         2. It's equivalent to `map (\x -> negate (abs x))`
+             3. `scriptCurrencySymbol policy` calls `scriptCurrencySymbol` with `policy` as a parameter.
+             4. `scriptCurrencySymbol . policy` returns a function that can have parameters.
+                1. When the function is called, then first `policy` will be called with the parameters and then `scriptCurrencySymbol` will be called on the result.
+             5. `:t txSignedBy`: `txSignedBy :: TxInfo -> PubKeyHash -> Bool`
+             6. `:t scriptContextTxInfo`: `scriptContextTxInfo :: ScriptContext -> TxInfo`
+                1. See: http://localhost:8002/haddock/plutus-ledger-api/html/Plutus-V1-Ledger-Api.html#t:ScriptContext
+             7. `mkPolicy pkh () ctx = txSignedBy (scriptContextTxInfo ctx) $ unPaymentPubKeyHash pkh`
+                1. Checks wether the tx that is minting the native token has been signed by the given PubKeyHash ()
+             8. ==>! The minting policy script is now parameterized with the `PaymentPubKeyHash`.
+                1. This hash is different for every wallet. ==> Thus it produces a different policy script hash. ==> Thus is results in a different `CurrencySymbol`.
+                2. In the emulator trace example the token name `ABC` is the same but the generated `CurrencySymbol` is different. Resulting in a different asset class.
+                3. ==> Even though the token name is the same, the asset class will still depend on the wallet minting it.
+          8. [NFTs (NFT.hs) / max token amount](https://www.youtube.com/watch?v=2lKN0ZL_EQU&list=PLNEK_Ejlx3x0G8V8CDBnRDZ86POVsrfzw&index=5)
+             1. Solution 1 (Mary era): create a monetary policy script with a `PaymentPubKeyHash` that doesn't allow to mint more of it after a certain deadline.
+                1. This way: Before the deadline no one else can mint more as it's only allowed to be done with the `PaymentPubKeyHash` of the wallet.
+                2. After the deadline it's not allowed to add more as the policy script will deny it.
+             2. Solution 2 (Plutus): 
+                1. The UTxO is unique as it's the nth index output of a transaction which itself is unique and as an own id.
+                   1. A transaction is only unique because of fees.
+                   2. A transaction that doesn't have inputs and only outputs without value might not be unique.
+                   3. But as one always need to pay fees for transactions that is not possible. One always need to have an input to be consumed to cover the transaction fees.
+                   4. Such an input always needs to come from an output of another transaction.
+                   5. The inputs are used to create the transaction hash. As they are unique the transaction hash is unique.
+                   6. This is recursive.
+                2. Check in the minting policy that the transaction consumes a specific UTxO. This way the minting policy can only be called once.
+                3. Additionally check that the `txInfoMint` has a value with an amount of only 1.
+                4. [Parameterized policy function with two parameters](https://youtu.be/2lKN0ZL_EQU?t=830)
+                5. [Offchain contract that mints the NFT](https://youtu.be/2lKN0ZL_EQU?t=892)
+                6. 
