@@ -167,6 +167,17 @@ This is a writeup about the Plutus Pioneer Program lectures. I use it to be able
    2. Can only be used for datalike types but cannot contain functions
 9. [Deploy to the testnet](https://www.youtube.com/watch?v=ABtffZPoUqU)
    1. If a transaction fails it normally fails already when submitting it to the blockchain. But one could insist to send it anyways and if it actually fails someone needs to handle the transaction costs. For that case a colleteral is needed.
+   2. [Using Plutus in the Cardano CLI](https://youtu.be/ABtffZPoUqU?t=977)
+      1. It uses the Cardano API - the Haskell lib that the Cardano CLI uses under the hood to
+         1. talk to the node
+         2. submit transactions
+         3. query the blockchain
+         4. Has its own data type that is very similar to the Plutus data types
+         5. `dataToScriptData :: Data -> ScriptData`
+            1. converts from Plutus `Data` to `ScriptData` of the Cardano API
+         6. [`writeJSON()`](https://youtu.be/ABtffZPoUqU?t=1033)
+         7. ...
+         8. [Generate script address via the CLI](https://youtu.be/ABtffZPoUqU?t=1241)
 10. [Homework](https://www.youtube.com/watch?v=GGUT2O_0urQ&list=PLNEK_Ejlx3x2zxcfoVGARFExzOHwXFCCL&index=7)
     1. First part
     2. [Second part](https://youtu.be/GGUT2O_0urQ?t=367)
