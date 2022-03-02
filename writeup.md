@@ -97,6 +97,7 @@ This is a writeup about the Plutus Pioneer Program lectures. I use it to be able
          3. The node checks the current time and checks if the time range is within `txInfoValidRange`. If it fails, then validation fails immediately without running the validator scripts.
          4. The validator script can assume that the current time does fall into this interval as the "pre-checks" would have prevented running the script otherwise.
          5. This makes validation deterministic.
+            1. I guess that's the case as the validator script doesn't check against the current time anymore but always against the validity interval.
          6. It's a static piece of data attached to the transaction so the result of the validation does not depend on when it is run. 
          Weather it's run in the wallet before submission or in one of the nodes when validating the transaction.
          7. ==> The validation script is deterministic because the time rage doesn't affect it as it can be assumed to always be valid when the script is run?
@@ -425,4 +426,173 @@ This is a writeup about the Plutus Pioneer Program lectures. I use it to be able
                 3. Additionally check that the `txInfoMint` has a value with an amount of only 1.
                 4. [Parameterized policy function with two parameters](https://youtu.be/2lKN0ZL_EQU?t=830)
                 5. [Offchain contract that mints the NFT](https://youtu.be/2lKN0ZL_EQU?t=892)
-                6. 
+15. End to end PAB and minting native tokens
+    1. [Mint via CLI](https://www.youtube.com/watch?v=kfvzrC9J02k&list=PLNEK_Ejlx3x2sBWXHdFBRgkzPF6N-1LVi&index=3)
+    2. Unwraps the minting policy to get the script in `src/Week06/Utils.hs` `writeMintingPolicy()`
+    3. The policy looks like that `mkTokenPolicy :: TxOutRef -> TokenName -> Integer -> () -> ScriptContext -> Bool`
+       1. It needs the UTxO, the token name and the amount to be compiled into the script
+    4. Will be used to write the policy to a file by this app `app/token-policy.hs`
+    5. A TxOutRef consists of the transaction id of the transaction which created it and the index of the output of that transaction.
+       1. The order of outputs of a transaction matters. The order of input doesn't.
+       2. e.g. the TxOutRef here is `0c60c01eef31f00bd7f8dffbdc59e141d5db7a523105734cee37a700d5354e56#0`
+       ```
+                                         TxHash                    TxIx
+       -------------------------------------------------------------------------
+       0c60c01eef31f00bd7f8dffbdc59e141d5db7a523105734cee37a700d5354e56     0
+       ```
+       3. Whenever we see that some type has an `isString` instance then we could use a String literal in combination with the `OverloadedStrings` extension to construct a value of this type.
+       4. Or programmatically we can use the `fromString()` function to turn a String into this type.
+    6. `AssetName` is the Cardano API type that corresponds to the Plutus token name type.
+    7. Example result: 
+       1. https://testnet.adatools.io/tokens/asset1yza3cuv5thlfr9as06avqgggwv4sch9e0lheq3
+       2. `Asset ID` = policy id + hash of the token name
+       3. policy id is equivalent to the currency symbol
+       4. https://explorer.cardano-testnet.iohkdev.io/de/transaction?id=702b250c69a924f9baffab93c44c0c128013fcdd7a11b2679561356621370b75
+    8. [PAB Deployment Scenarios](https://www.youtube.com/watch?v=tW7uoY16gC0&list=PLNEK_Ejlx3x2sBWXHdFBRgkzPF6N-1LVi&index=4)
+       1. See
+          1. http://localhost:8002/plutus/explanations/pab.html
+       2. PAB
+          1. Needs the offchain code written in the contract monad that the PAB can execute. 
+       3. Wallet Backend
+          1. E.g. used by the Daedalus wallet
+          2. Can administer multiple wallets
+             1. hd wallets
+                1. infinity of potential addresses
+                2. The public keys get derived with each (step?) so one usually never uses the same one again
+                3. 
+       4. [Chain index](https://youtu.be/tW7uoY16gC0?t=67)
+          1. The SQL database that stores the blockchain data of the node
+          2. Something like a lightweight version of dbsync
+          3. Allows to lookup the datum belonging to a given datum hash
+          4. Needed by the PAB
+       5. Deployment scenarios
+          1. WBE / Hosted by the dapp provider (currently suppored)
+              1. The PAB has full control over one or more of the wallets.
+              2. Also over their spending passwords.
+              3. It can sign transactions with the with the wallets.
+              4. The user could host that by himself but then it would rather be a bundle of apps that would run on the users machine.
+                  1. Consume quite a lot of resources (memory, cpu, harddisk space,...)
+              5. Not the decentralized way it should be.
+          2. Browser wallet (currently not supported)
+             1. Serverside
+                1. PAB
+                   1. Creates transaction without being able to sign them because it doesn't have access to a wallet.
+                   2. It exposes this unsigned transaction
+                   3. The browser picks it up and signs it using a browser wallet
+                   4. Currently only exposes unbalanced transactions
+                      1. The browser would have to balance it and that is very tricky
+                2. Chainindex
+                3. Node
+                4. Not the wallet
+    9. [The contracts](https://www.youtube.com/watch?v=JgNhY_uuuGA&list=PLNEK_Ejlx3x2sBWXHdFBRgkzPF6N-1LVi&index=5)
+       1. Utility functions for the off-chain part
+          1. The Plutus address
+             1. http://localhost:8002/haddock/plutus-ledger/html/Ledger.html#t:Address
+             2. ```haskell
+                data Address
+                Constructors
+                Address	 
+                   addressCredential :: Credential	 
+                   addressStakingCredential :: Maybe StakingCredential
+                ```
+             3. ```haskell
+                data Credential
+                Constructors
+                   PubKeyCredential PubKeyHash
+                   ScriptCredential ValidatorHash
+                ```
+       2. [`Token.OffChain` for `mintToken :: TokenParams -> Contract w s Text CurrencySymbol`](https://youtu.be/JgNhY_uuuGA?t=201)
+          1. [`TokenParams` type](https://youtu.be/JgNhY_uuuGA?t=213)
+             1. `tpAddress` - the address of a wallet that receives the tokens
+          2. The change-address is picked by the wallet
+          3. [The `mintToken` function](https://youtu.be/JgNhY_uuuGA?t=281)
+             1. The returned `CurrencySymbol` is not needed. It's a leftover from trying to implement the Oracle example.
+             2. [`o    <- fromJust <$> Contract.txOutFromRef oref`](https://youtu.be/JgNhY_uuuGA?t=379)
+                1. `<$>` is `fmap` as an infix operator
+             3. [For the case where `addressStakingCredential` is present there is a separate `Constraints` function to be used:](https://youtu.be/JgNhY_uuuGA?t=505)
+                1. `Constraints.mustPayToPubKeyAddress x y val`
+             4. [`Constraints.mustSpendPubKeyOutput oref` to make sure that there is exactly one minting tx for this currency symbol.](https://youtu.be/JgNhY_uuuGA?t=636)
+                1. This `oref` will be "compiled" into the minting policy. This way the minting policy will be successfully validated only with this `oref`.
+                2. As this `oref` will be spent with that transaction the minting policy can only be successfully run once.
+             5. [Submitting the tx with `adjustAndSubmitWith`](https://youtu.be/JgNhY_uuuGA?t=659)
+                1. `unbalanced <- adjustUnbalancedTx <$> mkTxConstraints lookups constraints`
+                   1. Adds the min-ADA to all the outputs as the minting transactions wouldn't have any ADA otherwise but need them.
+       3. [`Trace` emulator trace](https://youtu.be/JgNhY_uuuGA?t=838)
+       4. `Monitor` contract
+          1. [Why an additional contract?](https://youtu.be/JgNhY_uuuGA?t=935)
+          2. [The idea of the contract](https://youtu.be/JgNhY_uuuGA?t=1003)
+             1. Queries the blockchain and reports a value sitting on that address constantly
+       5. [Minting with the PAB](https://www.youtube.com/watch?v=X6AyZIZ0vaE&list=PLNEK_Ejlx3x2sBWXHdFBRgkzPF6N-1LVi&index=6)
+          1. ```haskell
+             data TokenContracts = Mint Token.TokenParams | Monitor Address
+             deriving (Eq, Ord, Show, Generic, FromJSON, ToJSON, ToSchema)
+             ```
+             1. Defines which contracts the PAB will expose
+             2. Two constructors for the two contracts
+                1. `Mint Token.TokenParams`
+                   1. Constructor name: `Mint`
+                   2. Parameter: `Token.TokenParams`
+          2. [`HasDefinitions`](https://youtu.be/X6AyZIZ0vaE?t=77)
+             1. `getDefinitions        = [Mint exampleTP, Monitor exampleAddr]`
+                1. Example values for the Swagger UI
+          3. [`getContract`](https://youtu.be/X6AyZIZ0vaE?t=148)
+             1. Tells us which contract to run given the value of this type
+          4. [`Main` app](https://youtu.be/X6AyZIZ0vaE?t=251)
+          5. [Start the wallet backend, the chain index and create the wallet](https://youtu.be/X6AyZIZ0vaE?t=289)
+             1. See: https://github.com/input-output-hk/plutus-apps/tree/main/plutus-pab/test-node
+             2. [Start the wallet backend server](https://youtu.be/X6AyZIZ0vaE?t=359)
+                1. `./start-testnet-wallet.sh`
+             3. [Create the wallet](https://youtu.be/X6AyZIZ0vaE?t=416)
+                1. `./create-wallet.sh SandrosWalletName SandrosPassphrase testnet/restore-wallet.json`
+             4. [Inform the backend about the wallet](https://youtu.be/X6AyZIZ0vaE?t=537)
+                1. `./load-wallet.sh`
+             5. [Get the wallet id from the response of the backend](https://youtu.be/X6AyZIZ0vaE?t=621)
+                1. `..."name": "PAB testing wallet", "id": "this-is-the-wallet-id"...`
+                2. Add it into the `env.sh` file.
+             6. [Start the chain index](https://youtu.be/X6AyZIZ0vaE?t=654)
+                1. `./start-testnet-chain-index.sh`
+                2. In case of error `cabal: The program '' is required but it could not be found.` then `cabal install plutus-chain-index` is needed.
+                3. The database file for the chain index is now also in the testnet folder. This way it doesn't have to reindex from genesis when the index is restarted but from the place were the script has been stopped.
+             7. [Start the PAB](https://youtu.be/X6AyZIZ0vaE?t=725)
+                1. Set the above passphrase in `start-testnet-pab.sh`
+                2. It uses the app in `app/token-pab.hs`
+                3. `./start-testnet-pab.sh`
+                4. `/testnet/pab-config.yml`
+                   1. `pabResumeFrom` originally was `"tag" : "PointAtGenesis" }`
+                   2. Use the block id and slot logged from the node there to shorten the syncing
+                5. [Migrate the database before starting the PAB](https://youtu.be/X6AyZIZ0vaE?t=863)
+                   1. `migrate-pab.sh`
+                6. `start-testnet-pab.sh`
+                7. [Swagger-UI](https://youtu.be/X6AyZIZ0vaE?t=920)
+                   1. http://localhost:9080/swagger/swagger-ui
+             8. [Copy the `curl` command from Swagger-UI and call it](https://youtu.be/X6AyZIZ0vaE?t=1096)
+             9. `mint-token-curl.sh`
+                1. `get-address.sh`
+                   1. pick one and add it into the `env.sh` file.
+                2. Uses `app/payment-key-hash.hs` and `app/stake-key-hash.hs`
+                   1. Uses `unsafeReadAddress` from `src/Week06/Utils.hs`
+             10. [The Yoroi wallet](https://youtu.be/X6AyZIZ0vaE?t=1318)
+             11. `mint-token-curl.sh 10 MyTokenName`
+             12. In check the instances in the Swagger UI by executing the endpoint `GET /api/contract/instances`
+             13. [CLI vs. PAB](https://youtu.be/X6AyZIZ0vaE?t=1442)
+             14. [Calling the PAB with Haskell](https://youtu.be/X6AyZIZ0vaE?t=1503)
+                 1. `app/mint-token.hs`
+                 2. Uses `Network.HTTP.Req` instead of `curl`
+             15. [`mint-token-haskell.sh` shell script](https://youtu.be/X6AyZIZ0vaE?t=1723)
+                 1. Uses `app/mint-token.hs` from above.
+                 2. `mint-token-haskell.sh 1000 gold`
+             16. [Calling the monitor contract](https://youtu.be/X6AyZIZ0vaE?t=1775)
+                 1. Stop the PAB
+                 2. Clear the PAB from log messages in the Swagger UI
+                    1. Clear the database: `rm testnet/plutus-pab.db`
+                    2. `./migrate-pab.sh`
+                 3. `./start-testnet-pab.sh`
+                 4. [The code that builds the request to the PAB](https://youtu.be/X6AyZIZ0vaE?t=1819)
+                    1. `app/monitor.hs`
+                 5. [Activate the monitoring contract](https://youtu.be/X6AyZIZ0vaE?t=1934)
+                    1. `./monitor.sh`
+                 6. [Get the instances in the Swagger UI](https://youtu.be/X6AyZIZ0vaE?t=2023)
+                    1. `GET /api/contract/instances`
+                 7. [`getMonitorState` code](https://youtu.be/X6AyZIZ0vaE?t=2056)
+    10. [Summary](https://www.youtube.com/watch?v=KmNOFltlRiA&list=PLNEK_Ejlx3x2sBWXHdFBRgkzPF6N-1LVi&index=7)
+                   

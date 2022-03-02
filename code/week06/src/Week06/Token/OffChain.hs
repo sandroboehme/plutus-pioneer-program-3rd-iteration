@@ -52,6 +52,7 @@ adjustAndSubmitWith :: ( PlutusTx.FromData (Scripts.DatumType a)
                     -> TxConstraints (Scripts.RedeemerType a) (Scripts.DatumType a)
                     -> Contract w s e CardanoTx
 adjustAndSubmitWith lookups constraints = do
+    -- Adds the min-ADA to all the outputs as the minting transactions wouldn't have any ADA otherwise but need them.
     unbalanced <- adjustUnbalancedTx <$> mkTxConstraints lookups constraints
     Contract.logDebug @String $ printf "unbalanced: %s" $ show unbalanced
     unsigned <- balanceTx unbalanced

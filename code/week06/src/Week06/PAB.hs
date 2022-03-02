@@ -19,6 +19,7 @@ import           Wallet.Emulator.Wallet              (knownWallet, mockWalletAdd
 import qualified Week06.Monitor                      as Monitor
 import qualified Week06.Token.OffChain               as Token
 
+-- Defines which contracts the PAB will expose
 data TokenContracts = Mint Token.TokenParams | Monitor Address
     deriving (Eq, Ord, Show, Generic, FromJSON, ToJSON, ToSchema)
 
@@ -33,6 +34,8 @@ instance HasDefinitions TokenContracts where
     getContract (Monitor addr) = SomeBuiltin $ Monitor.monitor addr
 
     getSchema = const $ endpointsToSchemas @Empty
+--    getSchema (Mint _ ) = endpointsToSchemas @Empty
+--    getSchema (Monitor _ ) = endpointsToSchemas @Empty
 
 exampleAddr :: Address
 exampleAddr = mockWalletAddress $ knownWallet 1

@@ -20,6 +20,7 @@ cabal exec token-policy $policyFile $oref $amt $tn
 
 unsignedFile=testnet/tx.unsigned
 signedFile=testnet/tx.signed
+# pid == policy id - the hash of the policy
 pid=$(cardano-cli transaction policyid --script-file $policyFile)
 tnHex=$(cabal exec token-name -- $tn)
 addr=$(cat $addrFile)
@@ -30,6 +31,7 @@ echo "token name (hex): $tnHex"
 echo "minted value: $v"
 echo "address: $addr"
 
+# The collateral is needed for the case that someone forces to create an invalid transaction.
 cardano-cli transaction build \
     $MAGIC \
     --tx-in $oref \
