@@ -259,7 +259,7 @@ This is a writeup about the Plutus Pioneer Program lectures. I use it to be able
     11. [Monad summary based on `threeInts`](https://youtu.be/f2w-MB3X4a0?t=4384)
         1. Computation with a super power (side-effect, fail with an error msg, log messages,...)
         2. Kind of an "Overloaded semicolon" ;-)
-    12. [`do` notation](https://youtu.be/f2w-MB3X4a0?t=4615)
+    12. <a id="donotation">[`do` notation](https://youtu.be/f2w-MB3X4a0?t=4615)
         ```haskell
         threeInts' :: Monad m => m Int -> m Int -> m Int -> m Int
         threeInts' mx my mz = do
@@ -595,4 +595,121 @@ This is a writeup about the Plutus Pioneer Program lectures. I use it to be able
                     1. `GET /api/contract/instances`
                  7. [`getMonitorState` code](https://youtu.be/X6AyZIZ0vaE?t=2056)
     10. [Summary](https://www.youtube.com/watch?v=KmNOFltlRiA&list=PLNEK_Ejlx3x2sBWXHdFBRgkzPF6N-1LVi&index=7)
+16. State Machines
+    1. [Intro and current resource caveat](https://www.youtube.com/watch?v=CLOHdIGgy90&list=PLNEK_Ejlx3x3Y5xvAsVqq46S9xkHopSGU&index=1)
+    2. [Commit Schemes](https://www.youtube.com/watch?v=JXKf1JwVAOE&list=PLNEK_Ejlx3x3Y5xvAsVqq46S9xkHopSGU&index=2)
+       1. Both choose 1 or both choose 0 (the sum is even) then Alice wins otherwise (the sum is odd) Bob wins
+       2. Alice hashes her choice with a nonce (number used once) and sends it to Bob
+       3. Bob makes his choic
+       4. Alice reveals her choice and nonce for Bob to check if its hash is similar to Alice' initial choice
+       5. ![CommitScheme](./writeupImages/commitSchemeWithNonce.png)
+       6. There are additional options to consider for a full state machine
+       7. ![AdditionalOptions](./writeupImages/commitSchemeWithNonceAndAdditionalOptions.png)
+          1. If Alice doesn't reveal her choice (e.g. because she lost) Bob is able to claim the win after a deadline has passed
+          2. If Bob doesn't replay because he has lost interest Alice is able to claim the win after a deadline has passed
+    3. [Implementation without state machines](https://www.youtube.com/watch?v=yczHkTzDnpk&list=PLNEK_Ejlx3x3Y5xvAsVqq46S9xkHopSGU&index=3)
+       1. `gPlayDeadline` - Bobs deadline to move
+       2. `gRevealDeadline` - Alice' deadline to reveal
+       3. `gToken` - The NFT identifying the game
+          1. By definition there can only be one NFT in circulation.
+          2. It can be owned by only one address = attached to only one UTxO.
+          3. This is the UTxO containing the current state of the game.
+       4. ```haskell
+          data GameDatum = GameDatum BuiltinByteString (Maybe GameChoice)
+          deriving Show
+          ```
+            1. `BuiltinByteString` is the hash of Alice
+            2. `Maybe GameChoice` is the move of Bob
+               1. `Maybe` because at the beginning the second player hasn't yet moved.
+       5. ```haskell
+          data GameRedeemer = Play GameChoice | Reveal BuiltinByteString | ClaimFirst | ClaimSecond
+          deriving Show
+          ```
+            1. `Play GameChoice` - When the 2nd player moves. `GameChoice` (zero or one) is the argument.
+            2. `Reveal BuiltinByteString` - When the 1st player reveals because he has won. `BuiltinByteString` is the nonce of the 1st players choice.
+               1. The choice of the first player is not part of the argument because he will only reveal if he has won.
+               2. We know the move of the 2nd player, and thus we know what move of the 1st player makes him win.
+               3. Adding this move as a parameter would make it redundant.
+            3. `ClaimFirst` - When the 2nd player doesn't make a move because he lost interest
+            4. `ClaimSecond` - When the 1st player doesn't reveal because he knows he has lost.
+       6. [The validator function](https://youtu.be/yczHkTzDnpk?t=661)
+          1. More notes and video links are directly in `EvenOdd.hs`.
+       7. ```haskell
+          {-# INLINABLE gameDatum #-}
+          gameDatum :: Maybe Datum -> Maybe GameDatum
+          gameDatum md = do
+          Datum d <- md
+          PlutusTx.fromBuiltinData d
+          ```
+          1. See [do notation above](#donotation)
+    4. [Emulator Trace](https://youtu.be/yczHkTzDnpk?t=2487)
+    5. [Repl](https://youtu.be/yczHkTzDnpk?t=2706)
+    6. [State Machine](https://www.youtube.com/watch?v=7jiaQRA-wKI&list=PLNEK_Ejlx3x3Y5xvAsVqq46S9xkHopSGU&index=4)
+       7. ![Our state machine](./writeupImages/commitSchemeWithNonceAndAdditionalOptions.png)
+          1. The nodes are states and the arrows are transitions.
+          2. The state machine is represented by the UTxO sitting at the script address
+          3. The state is the datum of that UTxO
+          4. The transition is the transaction that consumes the current state (/ the current UTxO?) using a redeemer that characterizes the transition and then produces a new UTxO at the same address where the datum now reflects the new state.
+       8. [`data StateMachine s i`](https://youtu.be/7jiaQRA-wKI?t=157)
+          1. `s` - Datum type, `i` - Redeemer type
+       9. 
+       10. ```haskell
+           StateMachine
+              smTransition :: State s -> i -> Maybe (TxConstraints Void Void, State s)
+              smFinal :: s -> Bool
+              smCheck :: s -> i -> ScriptContext -> Bool
+              smThreadToken :: Maybe ThreadToken
+           ```
+           1. [local Haddock](http://localhost:8002/haddock/plutus-contract/html/Plutus-Contract-StateMachine.html#t:StateMachine)
+           2. ` smTransition :: State s -> i -> Maybe (TxConstraints Void Void, State s)`
+              1. [`State s`](http://localhost:8002/haddock/plutus-contract/html/Plutus-Contract-StateMachine.html#t:State)
+              2. ```haskell
+                 State	 
+                    stateData :: s -- Datum	 
+                    stateValue :: Value
+                 ```
+           3. [`smFinal :: s -> Bool`](https://youtu.be/7jiaQRA-wKI?t=274)
+              1. If we transition into a final state then there mustn't be any value attached with it.
+              2. If the new state is final then we don't produce a new UTxO.
+           4. [`smCheck :: s -> i -> ScriptContext -> Bool`](https://youtu.be/7jiaQRA-wKI?t=316)
+              1. Additional checks that can't be expressed in terms of the `TxConstraints`.
+           5. [`smThreadToken :: Maybe ThreadToken`](https://youtu.be/7jiaQRA-wKI?t=332)
+              1. Anyone can send money to the script address and create UTxOs by doing this.
+              2. To identify the right game UTxO it has to have the NFT specified in the contract.
+              3. The state machine will care about minting the NFT and cares about passing it along.
+              4. The state token will not be visible in the `stateValue` of the `State`
+              5. The state machin will burn the token when the "final" state is reached.
+       11. [EvenOdd as state machine](https://youtu.be/7jiaQRA-wKI?t=485)
+           1. ```haskell
+                 data GameDatum = GameDatum BuiltinByteString (Maybe GameChoice) | Finished
+                    deriving Show
+              ```
+              2. GameDatum now contains the `Finished` State. It won't correspond to an UTxO but it's needed for the state machine mechanism to work.
+           2. [The `transition` function](https://youtu.be/7jiaQRA-wKI?t=581)
+              1. `transition :: Game -> State GameDatum -> GameRedeemer -> Maybe (TxConstraints Void Void, State GameDatum)`
+              2. Corresponds to the `mkGameValidator` function
+              3. Contains the core business logic.
+           3. [The `final` and `check` functions](https://youtu.be/7jiaQRA-wKI?t=1180)
+           4. [`gameStateMachine`](https://youtu.be/7jiaQRA-wKI?t=1256)
+           5. [`mkGameValidator`](https://youtu.be/7jiaQRA-wKI?t=1283)
+           6. [`gameClient`](https://youtu.be/7jiaQRA-wKI?t=1377)
+           7. [`firstGame`](https://youtu.be/7jiaQRA-wKI?t=1585)
+              1. [`runInitialize`](https://youtu.be/7jiaQRA-wKI?t=1681)
+              2. [`getOnChainState`](https://youtu.be/7jiaQRA-wKI?t=1780)
+           8. [`secondGame`](https://youtu.be/7jiaQRA-wKI?t=2078)
+           9. [No need to replicate logic...](https://youtu.be/7jiaQRA-wKI?t=2192)
+           10. [Test of the state machine](https://youtu.be/7jiaQRA-wKI?t=2256)
+               1. [`slotToEndPOSIXTime`](https://youtu.be/7jiaQRA-wKI?t=2333)
+               2. Plutus uses POSIXTime with a precision of milliseconds
+               3. Ouroboros uses slots with a length of 1 second
+               4. When converting from POSIXTime to Ouroboros and back precision is lost
+               5. ==>`Constraints.mustValidateIn` used in off-chain code to construct the transaction is not guaranteed to make on-chain validation pass as expected from the state machine
+               6. Using `slotToBeginPOSIXTime` the off-chain part of the state machine would have constructed transactions that wouldn't validate.
+                  1. `slotToBeginPOSIXTime def 10`
+                     1. `POSIXTime {getPOSIXTime = 1596059101000}`
+                  2. `slotToEndPOSIXTime def 10`
+                     1. `POSIXTime {getPOSIXTime = 1596059101999}`
+                  3. I guess the reason why `slotToEndPOSIXTime` has to be used is because it rounds up in a way that matches to the on-chain code.
+       12. [Homework](https://www.youtube.com/watch?v=J0rD_hmsMVo&list=PLNEK_Ejlx3x3Y5xvAsVqq46S9xkHopSGU&index=5)
+       13. 
                    
