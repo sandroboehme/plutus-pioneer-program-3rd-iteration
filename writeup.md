@@ -426,7 +426,7 @@ This is a writeup about the Plutus Pioneer Program lectures. I use it to be able
                 3. Additionally check that the `txInfoMint` has a value with an amount of only 1.
                 4. [Parameterized policy function with two parameters](https://youtu.be/2lKN0ZL_EQU?t=830)
                 5. [Offchain contract that mints the NFT](https://youtu.be/2lKN0ZL_EQU?t=892)
-15. End to end PAB and minting native tokens
+15. Lecture 6: End to end PAB and minting native tokens
     1. [Mint via CLI](https://www.youtube.com/watch?v=kfvzrC9J02k&list=PLNEK_Ejlx3x2sBWXHdFBRgkzPF6N-1LVi&index=3)
     2. Unwraps the minting policy to get the script in `src/Week06/Utils.hs` `writeMintingPolicy()`
     3. The policy looks like that `mkTokenPolicy :: TxOutRef -> TokenName -> Integer -> () -> ScriptContext -> Bool`
@@ -595,7 +595,7 @@ This is a writeup about the Plutus Pioneer Program lectures. I use it to be able
                     1. `GET /api/contract/instances`
                  7. [`getMonitorState` code](https://youtu.be/X6AyZIZ0vaE?t=2056)
     10. [Summary](https://www.youtube.com/watch?v=KmNOFltlRiA&list=PLNEK_Ejlx3x2sBWXHdFBRgkzPF6N-1LVi&index=7)
-16. State Machines
+16. Lecture 7: State Machines
     1. [Intro and current resource caveat](https://www.youtube.com/watch?v=CLOHdIGgy90&list=PLNEK_Ejlx3x3Y5xvAsVqq46S9xkHopSGU&index=1)
     2. [Commit Schemes](https://www.youtube.com/watch?v=JXKf1JwVAOE&list=PLNEK_Ejlx3x3Y5xvAsVqq46S9xkHopSGU&index=2)
        1. Both choose 1 or both choose 0 (the sum is even) then Alice wins otherwise (the sum is odd) Bob wins
