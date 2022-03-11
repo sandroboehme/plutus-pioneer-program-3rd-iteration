@@ -643,6 +643,9 @@ This is a writeup about the Plutus Pioneer Program lectures. I use it to be able
           ```
           1. See [do notation above](#donotation)
     4. [Emulator Trace](https://youtu.be/yczHkTzDnpk?t=2487)
+       1. `runEmulatorTraceIO'` is a variant for defining an initial condition.
+       2. `runEmulatorTraceIO' :: TraceConfig -> EmulatorConfig -> EmulatorTrace () -> IO ()`
+       3. See: http://localhost:8002/haddock/plutus-contract/html/Plutus-Trace-Emulator.html#v:runEmulatorTraceIO-39-
     5. [Repl](https://youtu.be/yczHkTzDnpk?t=2706)
     6. [State Machine](https://www.youtube.com/watch?v=7jiaQRA-wKI&list=PLNEK_Ejlx3x3Y5xvAsVqq46S9xkHopSGU&index=4)
        7. ![Our state machine](./writeupImages/commitSchemeWithNonceAndAdditionalOptions.png)
@@ -662,7 +665,7 @@ This is a writeup about the Plutus Pioneer Program lectures. I use it to be able
            ```
            1. [local Haddock](http://localhost:8002/haddock/plutus-contract/html/Plutus-Contract-StateMachine.html#t:StateMachine)
            2. ` smTransition :: State s -> i -> Maybe (TxConstraints Void Void, State s)`
-              1. [`State s`](http://localhost:8002/haddock/plutus-contract/html/Plutus-Contract-StateMachine.html#t:State)
+              1. <a id="state">[`State s`](http://localhost:8002/haddock/plutus-contract/html/Plutus-Contract-StateMachine.html#t:State)
               2. ```haskell
                  State	 
                     stateData :: s -- Datum	 
@@ -711,5 +714,40 @@ This is a writeup about the Plutus Pioneer Program lectures. I use it to be able
                      1. `POSIXTime {getPOSIXTime = 1596059101999}`
                   3. I guess the reason why `slotToEndPOSIXTime` has to be used is because it rounds up in a way that matches to the on-chain code.
        12. [Homework](https://www.youtube.com/watch?v=J0rD_hmsMVo&list=PLNEK_Ejlx3x3Y5xvAsVqq46S9xkHopSGU&index=5)
-       13. 
-                   
+17. Lecture 8: Another State Machine, Testing
+    1. [Introduction](https://www.youtube.com/watch?v=mqHifIPefus&feature=youtu.be)
+    2. [Token Sale State Machine](https://www.youtube.com/watch?v=y5O58-NpnJ4)
+       1. State transitions
+       2. [Implementation](https://youtu.be/y5O58-NpnJ4?t=207)
+          1. `TokenSale`, `TSRedeemer`, `lovelaces`
+          2. [`transition` function](https://youtu.be/y5O58-NpnJ4?t=361)
+             1. `State Integer` is the state machine `State` that stores the price as `Datum`. [See previous lecture.](#state)
+          3. [`tsStateMachine` function](https://youtu.be/y5O58-NpnJ4?t=704)
+             1. This time the smart constructor `mkStateMachine` can be used.
+             2. Last time we had to use the actual constructor of the state machine because there was something we couldn't express as a constraint.
+             3. `(const False)` - the function that determines weather the states are final or not.
+                1. In this case there isn't a final state and the state machine is inteded to run forever
+          4. [`tsCovIdx`](https://youtu.be/y5O58-NpnJ4?t=826)
+             1. Provides coverage information for tests
+          5. [`mapErrorSM`](https://youtu.be/y5O58-NpnJ4?t=863)
+          6. [`startTS`](https://youtu.be/y5O58-NpnJ4?t=891)
+          7. [One liners corresponding to the redeemer.](https://youtu.be/y5O58-NpnJ4?t=1010)
+          8. [Bundling endpoints up](https://youtu.be/y5O58-NpnJ4?t=1086)
+             1. [`uncurry`](https://youtu.be/y5O58-NpnJ4?t=1220)
+                1. `:t uncurry`: `uncurry :: (a -> b -> c) -> (a, b) -> c`
+                2. `:t (+)`: `(+) :: Num a => a -> a -> a`
+                3. `:t uncurry (+)`: `uncurry (+) :: Num c => (c, c) -> c`
+                4. `uncurry (+) (3 :: Int, 4)`: `7`
+                5. The tupel `(3, 4)` will be passed to the `(+)` function as individual parameters instead of a map and executed.
+                6. 
+       3. [Emulator Trace](https://youtu.be/y5O58-NpnJ4?t=1300)
+       4. [cabal file and repl](https://youtu.be/y5O58-NpnJ4?t=1533)
+          1. `cabal repl plutus-pioneer-program-week08.cabal:test:plutus-pioneer-program-week08-tests`
+          2. `:l test/Spec/Trace.hs`
+          3. `runMyTrace`
+    3. [Automatic testing](https://www.youtube.com/watch?v=LG9O8YbBXyM)
+       1. Tasty
+          1. https://hackage.haskell.org/package/tasty
+    4. [Homework](https://www.youtube.com/watch?v=u2Plwc3Gkrs)
+       1. Close the contract
+       2. Collect all the remaining tokens and lovelace and the NFT

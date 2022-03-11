@@ -120,7 +120,7 @@ transition game s r = case (stateValue s, stateData s, r) of
     (v, GameDatum _ (Just _), ClaimSecond)
         | lovelaces v == (2 * gStake game)       -> Just ( Constraints.mustBeSignedBy (gSecond game)                    <>
                                                            Constraints.mustValidateIn (from $ 1 + gRevealDeadline game)
-                                                         , State Finished mempty
+                                                         c
                                                          )
     _                                            -> Nothing
 

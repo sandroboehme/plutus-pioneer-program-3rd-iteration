@@ -42,7 +42,7 @@ import           Test.QuickCheck
 import           Test.Tasty
 import           Test.Tasty.QuickCheck
 
-import           Week08.TokenSaleFixed                        (TokenSale (..), TSStartSchema, TSUseSchema, startEndpoint, useEndpoints')
+import           Week08.TokenSaleFixedSandro                        (TokenSale (..), TSStartSchema, TSUseSchema, startEndpoint, useEndpoints')
 
 type TSUseSchema' = TSUseSchema .\/ Endpoint "init" TokenSale
 

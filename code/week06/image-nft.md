@@ -1,20 +1,20 @@
-4. [CIP 25 - NFT Metadata Standard](https://cips.cardano.org/cips/cip25/)
+2. [CIP 25 - NFT Metadata Standard](https://cips.cardano.org/cips/cip25/)
    1. [GitHub](https://github.com/cardano-foundation/CIPs/blob/master/CIP-0025/README.md)
-5. NFTs on the testnet:
+3. NFTs on the testnet:
     1. https://testnet.adatools.io/nft
     2. https://testnet.adatools.io/tokens
-6. You can play around with the metadata file and build an example with this website:
+4. You can play around with the metadata file and build an example with this website:
    1. https://pool.pm/test/metadata
-7. NFTs on the mainnet: https://pool.pm/tokens
-8. The the new UTxO with spendable ADA: `./query-key1.sh`
-9. Use it to create the policy script file
+5. NFTs on the mainnet: https://pool.pm/tokens
+6. The the new UTxO with spendable ADA: `./query-key1.sh`
+7. Use it to create the policy script file
    1. E.g. `cabal exec token-policy -- testnet/token.plutus b891e9b26099bfc4165e2004572e0816e63c2f96798b609301e9fcb144b916e8#0 1 kaffee`
-10. Get the policy id
-    1. `cardano-cli transaction policyid --script-file testnet/token.plutus`
-       1. Result in my example: `3eab9953ed4448bde21458545d0b82330026165fee13147baf742345`
-11. Upload the image to IPFS with a free service
-    1. https://nft.storage/
-12. Build up the metadata file  and 
+8. Get the policy id
+   1. `cardano-cli transaction policyid --script-file testnet/token.plutus`
+      1. Result in my example: `3eab9953ed4448bde21458545d0b82330026165fee13147baf742345`
+9. Upload the image to IPFS with a free service
+   1. https://nft.storage/
+10. Build up the metadata file  and 
      2. 
       ```json
        {
@@ -53,4 +53,5 @@
        5. Call the cli script
           1. `./mint-token-cli.sh b891e9b26099bfc4165e2004572e0816e63c2f96798b609301e9fcb144b916e8#0 1 kaffee testnet/01.addr testnet/01.skey /Users/sandro/.../kaffeeNFTmetadata.json`
     4. Check after some time if the NFT is available at https://testnet.adatools.io/nft
+11. found later: https://www.youtube.com/watch?v=WP64LuFgdog
     
