@@ -88,8 +88,8 @@ transition ts s r = case (stateValue s, stateData s, r) of
                                                                       , State Nothing mempty
                                                                       )
       where
-        threadTokenCurrencySymbol :: ThreadToken -> CurrencySymbol
-        threadTokenCurrencySymbol (txOutRef, cSymbol) = cSymbol
+--        threadTokenCurrencySymbol :: ThreadToken -> CurrencySymbol
+--        threadTokenCurrencySymbol (txOutRef, cSymbol) = cSymbol
 
         -- threadTokenValue :: CurrencySymbol -> ValidatorHash -> Value
 

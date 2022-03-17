@@ -745,9 +745,58 @@ This is a writeup about the Plutus Pioneer Program lectures. I use it to be able
           1. `cabal repl plutus-pioneer-program-week08.cabal:test:plutus-pioneer-program-week08-tests`
           2. `:l test/Spec/Trace.hs`
           3. `runMyTrace`
-    3. [Automatic testing](https://www.youtube.com/watch?v=LG9O8YbBXyM)
+    3. [Automatic testing using Emulator Traces](https://www.youtube.com/watch?v=LG9O8YbBXyM)
        1. Tasty
-          1. https://hackage.haskell.org/package/tasty
+          1. Group tests
+          2. Supported by Plutus
+          3. Various types supported e.g.
+              1. One which works with emulator traces (this chapter)
+              2. Property based testing (next chapter)
+       2. https://hackage.haskell.org/package/tasty
+       3. http://localhost:8002/haddock/plutus-contract/html/Plutus-Contract-Test.html
+          1. [Checking predicates](https://youtu.be/LG9O8YbBXyM?t=81) 
+             1. ```haskell
+                   checkPredicate
+                      :: String -- Descriptive name of the test
+                      -> TracePredicate -- The predicate to check
+                      -> EmulatorTrace ()	 
+                      -> TestTree
+                ```
+          2. [With options](https://youtu.be/LG9O8YbBXyM?t=113) 
+             1. ```haskell
+                   checkPredicateOptions
+                      :: CheckOptions -- Options to use
+                      -> String -- Descriptive name of the test
+                      -> TracePredicate -- The predicate to check
+                      -> EmulatorTrace ()	 
+                      -> TestTree
+                ```
+       4. [`TracePredicate` function](https://youtu.be/LG9O8YbBXyM?t=255)
+          1. [Assertions](https://youtu.be/LG9O8YbBXyM?t=308)
+             1. http://localhost:8002/haddock/plutus-contract/html/Plutus-Contract-Test.html#g:1
+             2. We mainly use `walletFundsChange`
+       5. [Out Tasty tests with emulator trace](https://youtu.be/LG9O8YbBXyM?t=387)
+          1. ```haskell
+              tests :: TestTree
+                 tests = checkPredicateOptions
+                 myOptions
+                 "token sale trace"
+                 myPredicate
+                 myTrace
+              ```
+          2. `myOptions = defaultCheckOptions & emulatorConfig .~ emCfg` 
+             1. Sets the `emulatorConfig` part of `defaultCheckOptions` with the value of `emCfg`
+             2. The `.~` operator is part of Optics (see later chapter for Optics)
+          3. ```haskell
+                 myPredicate :: TracePredicate
+                 myPredicate =
+                    walletFundsChange w1 (Ada.lovelaceValueOf   10_000_000  <> assetClassValue token (-60) <> Plutus.negate (toValue minAdaTxOut)) .&&.
+                    walletFundsChange w2 (Ada.lovelaceValueOf (-20_000_000) <> assetClassValue token   20)                                         .&&.
+                    walletFundsChange w3 (Ada.lovelaceValueOf (- 5_000_000) <> assetClassValue token    5)
+             ```
+             1. Specifies how much the funds of the wallets should have changed.
+             
     4. [Homework](https://www.youtube.com/watch?v=u2Plwc3Gkrs)
        1. Close the contract
        2. Collect all the remaining tokens and lovelace and the NFT
+    5. 
