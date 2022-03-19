@@ -63,9 +63,9 @@ myOptions = defaultCheckOptions & emulatorConfig .~ emCfg
 
 myPredicate :: TracePredicate
 myPredicate =
-    walletFundsChange w1 (Ada.lovelaceValueOf   25_000_000  <> assetClassValue token -25) .&&.
-    walletFundsChange w2 (Ada.lovelaceValueOf (-20_000_000) <> assetClassValue token  20) .&&.
-    walletFundsChange w3 (Ada.lovelaceValueOf (- 5_000_000) <> assetClassValue token   5)
+    walletFundsChange w1 (Ada.lovelaceValueOf ( 25_000_000) <> assetClassValue token (-25)) .&&.
+    walletFundsChange w2 (Ada.lovelaceValueOf (-20_000_000) <> assetClassValue token   20) .&&.
+    walletFundsChange w3 (Ada.lovelaceValueOf (- 5_000_000) <> assetClassValue token    5)
 
 runMyTrace :: IO ()
 runMyTrace = runEmulatorTraceIO' def emCfg myTrace

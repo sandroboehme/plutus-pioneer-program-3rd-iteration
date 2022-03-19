@@ -187,8 +187,11 @@ startEndpoint = forever
               $ awaitPromise
               $ endpoint @"start" $ startTS . AssetClass
 
--- I guess they can be bundled together because they don't have
--- any order they depend on.
+-- I guess they can be bundled together because the `startEndpoint` contract publishes the
+-- `TokenSale` object while the `useEndpoints'` contract gets it.
+--
+-- Also the type has had to be more general in `useEndpoints'` compared to `useEndpoints`
+-- https://youtu.be/49oAwySp6Ys?t=227
 useEndpoints' :: ( HasEndpoint "set price" Integer s
                  , HasEndpoint "add tokens" Integer s
                  , HasEndpoint "buy tokens" Integer s

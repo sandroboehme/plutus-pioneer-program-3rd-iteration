@@ -30,7 +30,7 @@ iohk = Company { _staff = [alejandro, lars] }
 goTo :: String -> Company -> Company
 goTo there c = c {_staff = map movePerson (_staff c)}
   where
-    movePerson p = p {_address = (_address p) {_city = there}}
+    movePerson p = p {_address = (_address p) {_city = there}} -- record update syntax
 
 makeLenses ''Company
 makeLenses ''Person

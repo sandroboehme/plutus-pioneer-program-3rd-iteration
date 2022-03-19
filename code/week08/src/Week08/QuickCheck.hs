@@ -10,9 +10,10 @@ prop_simple = 2 + 2 == (4 :: Int)
 -- >>> sort [5,1,9]
 -- [1,5,9]
 --
-sort :: [Int] -> [Int] -- not correct
+sort :: [Int] -> [Int]
 sort []     =  []
-sort (x:xs) =  insert x $ sort xs
+sort (x:xs) =  insert x $ sort xs -- correct
+-- sort (x:xs) =  insert x xs  -- not correct
 
 -- | Insert an integer at the right position into an /ascendingly sorted/
 -- list of integers.
@@ -20,9 +21,10 @@ sort (x:xs) =  insert x $ sort xs
 -- >>> insert 5 [1,9]
 -- [1,5,9]
 --
-insert :: Int -> [Int] -> [Int] -- not correct
+insert :: Int -> [Int] -> [Int]
 insert x []                     =  [x]
-insert x (y:ys)  | x <= y       =  x : y : ys
+insert x (y:ys)  | x <= y       =  x : ys -- wrong
+-- insert x (y:ys)  | x <= y       =  x : y : ys -- correct
                  | otherwise    =  y : insert x ys
 
 isSorted :: [Int] -> Bool

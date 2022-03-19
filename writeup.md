@@ -795,8 +795,126 @@ This is a writeup about the Plutus Pioneer Program lectures. I use it to be able
                     walletFundsChange w3 (Ada.lovelaceValueOf (- 5_000_000) <> assetClassValue token    5)
              ```
              1. Specifies how much the funds of the wallets should have changed.
-             
-    4. [Homework](https://www.youtube.com/watch?v=u2Plwc3Gkrs)
+    4. [Test coverage](https://www.youtube.com/watch?v=wJQnQtLxi2E)
+       1. ```haskell
+                checkPredicateCoverageSource
+                   :: String -- Descriptive name of the test
+                   -> CoverageRef
+                   -> TracePredicate -- The predicate to check
+                   -> EmulatorTrace ()	 
+                   -> TestTree
+          ```
+          The version with the `CheckOptions` is not available yet.
+          1. [Own implementation](https://youtu.be/wJQnQtLxi2E?t=65)
+          2. A `TokenSaleTrace.html` file is generated.
+             1. White colored code is covered by tests.
+             2. Green colored conditions are not covered.
+             3. Red code on black background is not covered.
+    5. [Optics](https://www.youtube.com/watch?v=naLA0OMIF1Q)
+       1. This one is used: https://hackage.haskell.org/package/lens-5.0.1.html
+       2. They are about reaching deeply into hierarchical datatypes
+          1. See [Lens.hs](./code/week08/src/Week08/Lens.hs) for an example data structure
+             1. [Explanation from Lars](https://youtu.be/naLA0OMIF1Q?t=71)
+             2. Lenses expect the underscore convention for fields.
+                1. The names of the Lenses will be the names of the fields without the original underscore.
+          2. [The code template Haskell writes](https://youtu.be/naLA0OMIF1Q?t=397)
+          3. [Trying out the Lenses](https://youtu.be/naLA0OMIF1Q?t=510)
+             1. `:l src/Week08/Lens.hs`
+             2. `import Control.Lens`
+             3. `lars ^. name`: `"Lars"`
+             4. `lars 1 . address . city`: `"Regensburg"`
+             5. `lars & name .~ "LARS"`: 
+                1. `Person {_name = "LARS", _address = Address {_city = "Regensburg"}}`
+             6. `lars & address . city .~ "Munich"`:
+                1. `Person {_name = "Lars", _address = Address {_city = "Munich"}}`
+             7. `[1 :: Int, 3, 4] & each .~ 42`:
+                1. `[42,42,42]`
+             8. `iohk ^. staff`:
+                1. `[Person {_name = "Alejandro", _address = Address {_city = "Zacateca"}},Person {_name = "Lars", _address = Address {_city = "Regensburg"}}]`
+             9. `iohk & staff . each . address . city .~ "Athens"`:
+                1. `Company {_staff = [Person {_name = "Alejandro", _address = Address {_city = "Athens"}},Person {_name = "Lars", _address = Address {_city = "Athens"}}]}`
+    6. [Property based tasting with "QuickCheck"](https://www.youtube.com/watch?v=9mrYT9UXLO8)
+       1. See: https://hackage.haskell.org/package/QuickCheck
+       2. Unit tests are a part of property based testing
+       3. See: [QuickCheck.hs](./code/week08/src/Week08/QuickCheck.hs)
+          1. `:l src/Week08/QuickCheck.hs`
+          2. `import Test.QuickCheck`
+          3. `quickCheck prop_sort_sorts`: 
+             1. ```haskell
+                   *** Failed! Falsified (after 5 tests and 3 shrinks):
+                   [0,0,-1]
+                ```
+             2. QuickCheck tried 5 lists with random integers and then found a counter example.
+             3. It didn't just report the counter example but simplified it 3 times before reporting the result. 
+          4. [Random number generation](https://youtu.be/9mrYT9UXLO8?t=386)
+          5. By default it generates 100 elements for an argument but it can be configured to a higher number.
+          6. The validity of the QuickCheck result depends on how well the validity of the test is specified.
+          7. This approach is more powerful than unit tests because it can come up with input cases the programmer might not have thought of.
+    7. [QuickCheck for Plutus contracts](https://www.youtube.com/watch?v=49oAwySp6Ys)
+       1. "Model" is an idialized model of how the real world system should work
+       2. "System" is the real system that is to be tested
+       3. QuickCheck generates a random sequence of actions.
+          1. In the case of a file system this would be "open file", "close file", "read file",...
+       4. It applies the actions to the Model and the System and checks if they are equal and continues that for more actions.
+       5. ![Graphic](writeupImages/SystemModelAction.png)
+       6. [Token Sale contract changes](https://youtu.be/49oAwySp6Ys?t=227)
+          1. `useEndpoints'`
+       7. [`useEndpoints''` in `Model.hs`](https://youtu.be/49oAwySp6Ys?t=333)
+          1. The `init` endpoint delegates to the `useEndpoints'`
+       8. [`TSState` represents one `TokenSales` instance](https://youtu.be/49oAwySp6Ys?t=468)
+          1. ```haskell
+                data TSState = TSState
+                   { _tssPrice    :: !Integer
+                   , _tssLovelace :: !Integer
+                   , _tssToken    :: !Integer
+                   } deriving Show
+             ```
+       9. `TSModel` represents the model of the expected behavior as described in the system <--> model diagram before.
+          1. `newtype TSModel = TSModel {_tsModel :: Map Wallet TSState} deriving Show`
+          2. A map from `Wallet` to `TSState`
+          3. Two wallets running their own token sale contract each with their own individual tokens.
+          4. Before the contract has started there won't be an entry for that wallet.
+          5. After that there will be an entry with the current state.
+       10. [`ContractModel` contains all the logic.](https://youtu.be/49oAwySp6Ys?t=552)
+           1. [`ContractInstanceKey` and why there are additional `useEndpoints` functions](https://youtu.be/49oAwySp6Ys?t=704)
+              1. ???
+           2. [`instanceTag` to identify running instances of contracts](https://youtu.be/49oAwySp6Ys?t=1090)
+           3. [`arbitraryAction` generates an arbitrary action](https://youtu.be/49oAwySp6Ys?t=1365)
+              1. applicative style
+              2. Trying in the repl
+                 1. `:l test/Spec/Model.hs`
+                 2. `import Test.QuickCheck`
+                 3. `import Plutus.Contract.Test.ContractModel`
+                 4. `sample (arbitraryAction undefined :: Gen (Action TSModel))`
+                 5. ```haskell
+                       SetPrice (Wallet 2) (Wallet 2) 0
+                       Start (Wallet 2)
+                       SetPrice (Wallet 2) (Wallet 1) 2
+                       AddTokens (Wallet 1) (Wallet 1) 4
+                       Withdraw (Wallet 1) (Wallet 2) 3 4
+                       Withdraw (Wallet 1) (Wallet 1) 1 3
+                       SetPrice (Wallet 1) (Wallet 2) 9
+                       BuyTokens (Wallet 1) (Wallet 2) 3
+                       Start (Wallet 2)
+                       Withdraw (Wallet 2) (Wallet 2) 8 3
+                       Withdraw (Wallet 1) (Wallet 1) 18 11
+                    ```
+           4. [`initialState`](https://youtu.be/49oAwySp6Ys?t=1770
+           5. [`precondition`](https://youtu.be/49oAwySp6Ys?t=1912)
+           6. [`nextState`](https://youtu.be/49oAwySp6Ys?t=2483)
+           7. [`perform`](https://youtu.be/49oAwySp6Ys?t=3473)
+              1. Tells how an action is expressed in the emulator
+              2. [`Start`](https://youtu.be/49oAwySp6Ys?t=3686)
+           8. [Limitations](https://youtu.be/49oAwySp6Ys?t=4548)
+              1. Doesn't test all possible off-chain code someone else develops
+                 1. E.g. code that allows them to steal funds from our script address
+                 2. QuickCheck has to use the contracts we provide in the `perform` method
+              2. Concurrency
+                 1. We check it sequentially
+                 2. In practice wallets can submit transactions concurrently
+                 3. We could do that but we would need to specify what should happen in this case
+                 4. That would depend on the order in which the transactions are processed. This might get quite complicated.
+    8. [Homework](https://www.youtube.com/watch?v=u2Plwc3Gkrs)
        1. Close the contract
        2. Collect all the remaining tokens and lovelace and the NFT
-    5. 
+    9. 

@@ -16,7 +16,7 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 
-module Spec.Model
+module Spec.ModelSandro
     ( tests
     , test
     , TSModel (..)
@@ -81,6 +81,7 @@ instance ContractModel TSModel where
             | Withdraw Wallet Wallet Integer Integer
             -- The second wallet wants to buy from the first wallets token sale Integer amount of tokens.
             | BuyTokens Wallet Wallet Integer
+            | Close Wallet Wallet
         deriving (Show, Eq)
 
     -- associated data type / generalized algebraic data type (gadt) has different format see: https://youtu.be/49oAwySp6Ys?t=720
@@ -115,6 +116,7 @@ instance ContractModel TSModel where
         , AddTokens <$> genWallet <*> genWallet <*> genNonNeg
         , BuyTokens <$> genWallet <*> genWallet <*> genNonNeg
         , Withdraw  <$> genWallet <*> genWallet <*> genNonNeg <*> genNonNeg
+        , Close  <$> genWallet <*> genWallet
         ]
 
     initialState :: TSModel
@@ -133,6 +135,7 @@ instance ContractModel TSModel where
     precondition s (AddTokens v _ _)  = isJust    $ getTSState' s v
     precondition s (BuyTokens v _ _)  = isJust    $ getTSState' s v
     precondition s (Withdraw v _ _ _) = isJust    $ getTSState' s v
+    precondition s (Close v _)        = isJust    $ getTSState' s v
 
     -- describes the effects the corresponding action is expected to have on the model
     nextState :: Action TSModel -> Spec TSModel ()
@@ -189,6 +192,18 @@ instance ContractModel TSModel where
                         (tsModel . ix v . tssLovelace) $~ (+ (- l))
                         (tsModel . ix v . tssToken) $~ (+ (- n))
                 _ -> return ()
+    nextState (Close v w) = do
+        wait 3
+        when (v == w) $ do
+            m <- getTSState v
+            case m of
+                Just t  -> do
+                        deposit w $ lovelaceValueOf (t ^. tssLovelace)
+--                           <> Ada.toValue (negate minAdaTxOut)
+                           <> assetClassValue (tokens Map.! w) (t ^. tssToken)
+                        withdraw w $ Ada.toValue (-minAdaTxOut)
+                        (tsModel . at w) $= Nothing
+                _ -> return ()
 
     startInstances :: ModelState TSModel -> Action TSModel -> [StartContract TSModel]
     startInstances _ _ = []
@@ -214,6 +229,7 @@ instance ContractModel TSModel where
     perform h _ m (AddTokens v w n)  = withWait m $ callEndpoint @"add tokens" (h $ UseKey v w) n
     perform h _ m (BuyTokens v w n)  = withWait m $ callEndpoint @"buy tokens" (h $ UseKey v w) n
     perform h _ m (Withdraw v w n l) = withWait m $ callEndpoint @"withdraw"   (h $ UseKey v w) (n, l)
+    perform h _ m (Close v w)  = withWait m $ callEndpoint @"close" (h $ UseKey v w) ()
 
 -- `withWait` ensures that something takes 3 slots
 withWait :: ModelState TSModel -> SpecificationEmulatorTrace () -> SpecificationEmulatorTrace ()
